@@ -32,6 +32,7 @@
     "socket.io-redis": "^6.0.1"
   },
   "devDependencies": {
+    "axios": "^0.21.1",
     "eslint-plugin-markdown": "^1.0.2",
     "snazzy": "^9.0.0",
     "standard": "^16.0.3"

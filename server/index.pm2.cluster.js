@@ -1,4 +1,6 @@
-require('dotenv-flow').config()
+require('dotenv-flow').config({
+	silent: true
+})
 const http = require('http')
 const { Server } = require('socket.io')
 const redisAdapter = require('socket.io-redis')

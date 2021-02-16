@@ -1,4 +1,6 @@
-require('dotenv-flow').config()
+require('dotenv-flow').config({
+	silent: true
+})
 const cluster = require('cluster')
 const http = require('http')
 const { Server } = require('socket.io')
