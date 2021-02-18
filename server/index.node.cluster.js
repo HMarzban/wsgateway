@@ -1,5 +1,5 @@
 require('dotenv-flow').config({
-	silent: true
+  silent: true
 })
 const cluster = require('cluster')
 const http = require('http')
@@ -9,7 +9,6 @@ const { setupMaster, setupWorker } = require('@socket.io/sticky')
 const Settings = require('./settings.json')
 const { validateSettings, healthCheckRouter, forkComponents } = require('./common')
 const { PORT, HOST, REDIS_URL, REDIS_PORT } = process.env
-
 
 // cluster mode
 let numCPUs = require('os').cpus().length
@@ -43,9 +42,9 @@ const runSocketWorker = (httpServer) => {
   const io = new Server(httpServer)
 
   io.adapter(redisAdapter({
-		host: REDIS_URL,
-		port: REDIS_PORT
-	}))
+    host: REDIS_URL,
+    port: REDIS_PORT
+  }))
 
   if (Settings.cluster) {
     setupWorker(io)

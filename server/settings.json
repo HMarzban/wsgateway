@@ -1,6 +1,7 @@
 {
 	"loadBalancingMethod": "round-robin",
 	"cluster": true,
+	"instances": 2,
 	"components": [
 		{
 			"namespace": "/profile",

@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha tests/client.test.js",
     "lint": "standard --fix --verbose | snazzy",
     "start": "node server/index.pm2.cluster.js",
     "start:cluster": "node server/index.node.cluster.js",

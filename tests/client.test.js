@@ -77,57 +77,57 @@ describe('server', function () {
     })
   }).timeout(9000)
 
-  // it('Server healthcheck, cluster check, each pId request must be different', function () {
-  //   const pdids = []
-  //   return Promise.all([...Array(2)].map(() => {
-  //     return new Promise(async resolve => {
-  //       const res = await getHealthCheck()
-  //       pdids.push(res.pId)
-  //       expect(typeof res).to.equal('object')
-  //       expect(res.status).to.be.true
-  //       expect(res.pId).to.be.a('number')
-  //       expect(pdids.filter(x => x == res.pId)).to.have.lengthOf(1)
-  //       resolve()
-  //     })
-  //   }))
-  // }).timeout(9000)
+  it('Server healthcheck, cluster check, each pId request must be different', function () {
+    const pdids = []
+    return Promise.all([...Array(2)].map(() => {
+      return new Promise(async resolve => {
+        const res = await getHealthCheck()
+        pdids.push(res.pId)
+        expect(typeof res).to.equal('object')
+        expect(res.status).to.be.true
+        expect(res.pId).to.be.a('number')
+        expect(pdids.filter(x => x == res.pId)).to.have.lengthOf(1)
+        resolve()
+      })
+    }))
+  }).timeout(9000)
 
-  // it('should echo a message to a client', done => {
-  //   const socket = makeSocket()
-  //   socket.emit('message', 'hello world')
-  //   socket.on('message', msg => {
-  //     expect(msg).to.equal('hello world')
-  //     done()
-  //   })
-  // })
+  it('should echo a message to a client', done => {
+    const socket = makeSocket()
+    socket.emit('message', 'hello world')
+    socket.on('message', msg => {
+      expect(msg).to.equal('hello world')
+      done()
+    })
+  })
 
-  // it(`should echo messages to multiple clients -${USERS}-`, () => {
-  //   const sockets = [...Array(+USERS)].map((_, i) => makeSocket(i))
-  //   return Promise.all(sockets.map((socket, id) =>
-  //     new Promise((resolve, reject) => {
-  //       const msgs = randomString(randomInteger(+MIN_MSG_LENGTH, +MAX_MSG_LENGTH))+"_U"+id
-  //       socket.emit('message', msgs)
-  //       socket.on('message', msg => {
-  //         expect(msgs).to.equal(msg)
-  //         resolve()
-  //       })
-  //     })
-  //   ))
-  // }).timeout(1000 * 60 * 3) // 3 min
+  it(`should echo messages to multiple clients -${USERS}-`, () => {
+    const sockets = [...Array(+USERS)].map((_, i) => makeSocket(i))
+    return Promise.all(sockets.map((socket, id) =>
+      new Promise((resolve, reject) => {
+        const msgs = randomString(randomInteger(+MIN_MSG_LENGTH, +MAX_MSG_LENGTH))+"_U"+id
+        socket.emit('message', msgs)
+        socket.on('message', msg => {
+          expect(msgs).to.equal(msg)
+          resolve()
+        })
+      })
+    ))
+  }).timeout(1000 * 60 * 3) // 3 min
 
   // 1/ All users connecting to socket
-  // 2/ A client send message to server
+  // 2/ A random user send message to server
   // 3/ The server must send a message to all users connected to the server
-
   it(`A client should broadcast a message to all users -${USERS}-`, () => {
     const sockets = [...Array(+USERS)].map((_, i) => makeSocket(i))
     let count = 0
     const sendACK = () => {
       return new Promise(resolve => {
-        const firstUser = sockets[0]
+				// select random user
+        const user = sockets[randomInteger(0, sockets.length)]
         // wait for all users event message set
         setTimeout(() => {
-          firstUser.emit('broadCastMessage', 'First user acknowledge')
+          user.emit('broadCastMessage', 'First user acknowledge')
           resolve()
         }, 300)
       })

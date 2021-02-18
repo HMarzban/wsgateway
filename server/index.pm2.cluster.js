@@ -1,5 +1,5 @@
 require('dotenv-flow').config({
-	silent: true
+  silent: true
 })
 const http = require('http')
 const { Server } = require('socket.io')
