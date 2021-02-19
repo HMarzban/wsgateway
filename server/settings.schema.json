@@ -5,16 +5,6 @@
   "description": "Settings",
   "type": "object",
 	"properties": {
-		"loadBalancingMethod": {
-			"type":"string",
-			"enum": ["random", "round-robin","least-connection"]
-		},
-		"cluster": {
-			"type":"boolean"
-		},
-		"instances": {
-			"type":"number"
-		},
 		"components": {
       "type": "array",
       "items": { "$ref": "#/definitions/component" }

@@ -1,7 +1,4 @@
 {
-	"loadBalancingMethod": "round-robin",
-	"cluster": false,
-	"instances": 2,
 	"components": [
 		{
 			"namespace": "/ep_profile",
