@@ -8,7 +8,7 @@ const http = require('http')
 const { Server } = require('socket.io')
 const redisAdapter = require('socket.io-redis')
 const { setupMaster, setupWorker } = require('@socket.io/sticky')
-const Settings = require('./settings.json')
+const Settings = require('../settings.json')
 const { validateSettings, healthCheckRouter, forkComponents } = require('./common')
 const {
   PORT,
@@ -16,25 +16,17 @@ const {
   REDIS_URL,
   REDIS_PORT,
   LOADBALANCING_METHOD,
-  CLUSTER,
-  INSTANCES
+  CLUSTER: clustring,
+  INSTANCES: numInstances
 } = process.env
 
 // cluster mode
+const CLUSTER = clustring === 'true'
 let numCPUs = require('os').cpus().length
-if (CLUSTER && INSTANCES) numCPUs = +INSTANCES
+const INSTANCES = numInstances.toLocaleLowerCase() === 'max' ? numCPUs : +numInstances
+if (CLUSTER && INSTANCES) numCPUs = INSTANCES
 
 validateSettings(Settings)
-
-const preservedNamespace = new Set()
-
-/**
- * Validate namespaces
-*/
-Settings.components.forEach(component => {
-  if (preservedNamespace.has(component.namespace)) { throw new Error(`Socket namespace [${component.namespace}] has already existed, choose another name!`) }
-  preservedNamespace.add(component.namespace)
-})
 
 const initHttpService = () => {
   return new Promise(resolve => {

@@ -4,7 +4,7 @@ require('dotenv-flow').config({
 const http = require('http')
 const { Server } = require('socket.io')
 const redisAdapter = require('socket.io-redis')
-const Settings = require('./settings.json')
+const Settings = require('../settings.json')
 const { validateSettings, healthCheckRouter, forkComponents } = require('./common')
 const { PORT, HOST, REDIS_URL, REDIS_PORT } = process.env
 
