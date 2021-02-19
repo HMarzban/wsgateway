@@ -36,7 +36,7 @@ axios.defaults.baseURL = SERVER_ADDRESS
 const getHealthCheck = () => {
   return axios.get('/healthcheck')
     .then(res => res.data)
-    .catch(error => console.log(error))
+    .catch(error => console.log(error.message))
 }
 
 describe('server', function () {

@@ -38,7 +38,7 @@ Settings.components.forEach(component => {
 
 const initHttpService = () => {
   return new Promise(resolve => {
-    const httpServer = http.createServer(healthCheckRouter)
+    const httpServer = http.createServer()
     httpServer.listen(PORT, () => {
       console.info(`Websocket gateway running at http://${HOST}:${PORT}`)
       resolve(httpServer)
@@ -48,7 +48,7 @@ const initHttpService = () => {
 
 const runSocketWorker = (httpServer) => {
   console.info(`Socket ${process.pid} started`)
-  httpServer = httpServer || http.createServer()
+  httpServer = httpServer || http.createServer(healthCheckRouter)
   const io = new Server(httpServer)
 
   io.adapter(redisAdapter({
