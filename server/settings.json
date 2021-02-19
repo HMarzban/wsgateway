@@ -1,0 +1,14 @@
+{
+	"components": [
+		{
+			"namespace": "/profile",
+			"path": "../tests/components/profile.js",
+			"exc": "init"
+		},
+		{
+			"namespace": "/admin",
+			"path": "../tests/components/admin.js",
+			"exc": "init"
+		}
+	]
+}
