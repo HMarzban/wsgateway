@@ -8,11 +8,19 @@ const redisAdapter = require('socket.io-redis')
 const { setupMaster, setupWorker } = require('@socket.io/sticky')
 const Settings = require('./settings.json')
 const { validateSettings, healthCheckRouter, forkComponents } = require('./common')
-const { PORT, HOST, REDIS_URL, REDIS_PORT } = process.env
+const {
+  PORT,
+  HOST,
+  REDIS_URL,
+  REDIS_PORT,
+  LOADBALANCING_METHOD,
+  CLUSTER,
+  INSTANCES
+} = process.env
 
 // cluster mode
 let numCPUs = require('os').cpus().length
-if (Settings.cluster && Settings.instances) numCPUs = Settings.instances
+if (CLUSTER && INSTANCES) numCPUs = INSTANCES
 
 validateSettings(Settings)
 
@@ -66,7 +74,7 @@ const runSocketWorker = (httpServer) => {
     const httpServer = await initHttpService()
 
     setupMaster(httpServer, {
-      loadBalancingMethod: Settings.loadBalancingMethod
+      loadBalancingMethod: LOADBALANCING_METHOD
     })
 
     for (let i = 0; i < numCPUs; i++) {
