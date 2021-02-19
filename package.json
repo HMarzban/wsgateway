@@ -1,6 +1,6 @@
 {
   "name": "wsgateway",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -9,8 +9,7 @@
     "start": "node server/index.pm2.cluster.js",
     "start:cluster": "node server/index.node.cluster.js",
     "start:pm2": "pm2 start ./scripts/pm2.config.js",
-    "start:docker": "node server/index.pm2.cluster.js",
-    "docker:build:server": "docker build -f scripts/server.dockerfile -t wscluster ."
+    "start:docker": "node server/index.pm2.cluster.js"
   },
   "keywords": [],
   "author": "Hossein Marzban",

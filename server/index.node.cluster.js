@@ -1,3 +1,5 @@
+// FIXME: node server crashe
+
 require('dotenv-flow').config({
   silent: true
 })
@@ -20,7 +22,7 @@ const {
 
 // cluster mode
 let numCPUs = require('os').cpus().length
-if (CLUSTER && INSTANCES) numCPUs = INSTANCES
+if (CLUSTER && INSTANCES) numCPUs = +INSTANCES
 
 validateSettings(Settings)
 
@@ -37,7 +39,7 @@ Settings.components.forEach(component => {
 const initHttpService = () => {
   return new Promise(resolve => {
     const httpServer = http.createServer(healthCheckRouter)
-    httpServer.listen(PORT, HOST, () => {
+    httpServer.listen(PORT, () => {
       console.info(`Websocket gateway running at http://${HOST}:${PORT}`)
       resolve(httpServer)
     })
@@ -54,7 +56,7 @@ const runSocketWorker = (httpServer) => {
     port: REDIS_PORT
   }))
 
-  if (Settings.cluster) {
+  if (CLUSTER) {
     setupWorker(io)
   }
 
@@ -62,7 +64,7 @@ const runSocketWorker = (httpServer) => {
 }
 
 ;(async () => {
-  if (!Settings.cluster) {
+  if (!CLUSTER) {
     const httpServer = await initHttpService()
     runSocketWorker(httpServer)
     return
