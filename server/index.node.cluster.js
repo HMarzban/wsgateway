@@ -1,7 +1,8 @@
-// FIXME: node server crashe
-
+const path = require('path')
+const dotEnvPath = path.resolve(__dirname, '../')
 require('dotenv-flow').config({
-  silent: true
+  silent: true,
+  path: dotEnvPath
 })
 const cluster = require('cluster')
 const http = require('http')
@@ -9,7 +10,7 @@ const { Server } = require('socket.io')
 const redisAdapter = require('socket.io-redis')
 const { setupMaster, setupWorker } = require('@socket.io/sticky')
 const Settings = require('../settings.json')
-const { validateSettings, healthCheckRouter, forkComponents } = require('./common')
+const { validateSettings, healthCheckRouter, forkComponents, redisCheckConnection } = require('./common')
 const {
   PORT,
   HOST,
@@ -19,6 +20,8 @@ const {
   CLUSTER: clustring,
   INSTANCES: numInstances
 } = process.env
+
+redisCheckConnection()
 
 // cluster mode
 const CLUSTER = clustring === 'true'

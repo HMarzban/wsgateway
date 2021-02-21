@@ -3,6 +3,8 @@ const path = require('path')
 const Ajv = require('ajv').default
 const ajValidator = new Ajv({ allErrors: true, async: true })
 const configSchema = require('./settings.schema.json')
+const redis = require('redis')
+const client = redis.createClient()
 
 exports.healthCheckRouter = (req, res) => {
   const url = req.url
@@ -54,4 +56,10 @@ exports.forkComponents = (settings, io) => {
   } catch (error) {
     console.error(error)
   }
+}
+
+exports.redisCheckConnection = () => {
+  client.on('error', function (error) {
+    if (error.code === 'ECONNREFUSED') { throw new Error(`Redis connection failed, error: ${error.code}`) }
+  })
 }
