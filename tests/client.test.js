@@ -14,7 +14,6 @@ const SERVER_ADDRESS = PORT ? `${SOCKET_URL}:${PORT}` : `${SOCKET_URL}`
 const { expect } = require('chai')
 const axios = require('axios').default
 const io = require('socket.io-client')
-const { resolve } = require('path')
 const socketUrl = `${SERVER_ADDRESS}/${NAMESPACE}`
 
 function randomString (len, charSet) {
@@ -52,6 +51,7 @@ describe('server', function () {
 
   const makeSocket = (id = 0) => {
     return new Promise((resolve) => {
+      console.log(socketUrl)
       const socket = io.connect(socketUrl, {
         reconnectionDelay: 1000,
         autoConnect: true,
@@ -80,26 +80,28 @@ describe('server', function () {
     })
   }).timeout(9000)
 
-  it('Server healthcheck, cluster check, each pId request must be different', function () {
-    const pdids = []
-    return Promise.all([...Array(2)].map(() => {
-      return new Promise(async resolve => {
-        const res = await getHealthCheck()
-        pdids.push(res.pId)
-        expect(typeof res).to.equal('object')
-        expect(res.status).to.be.true
-        expect(res.pId).to.be.a('number')
-        expect(pdids.filter(x => x === res.pId)).to.have.lengthOf(1)
-        resolve()
-      })
-    }))
-  }).timeout(9000)
+  // it('Server healthcheck, cluster check, each pId request must be different', function () {
+  //   const pdids = []
+  //   return Promise.all([...Array(2)].map(() => {
+  //     return new Promise(async resolve => {
+  //       const res = await getHealthCheck()
+  //       pdids.push(res.pId)
+  //       expect(typeof res).to.equal('object')
+  //       expect(res.status).to.be.true
+  //       expect(res.pId).to.be.a('number')
+  //       expect(pdids.filter(x => x === res.pId)).to.have.lengthOf(1)
+  //       resolve()
+  //     })
+  //   }))
+  // }).timeout(9000)
 
   it('should echo a message to a client', () => {
-    makeSocket().then(socket => {
+    return makeSocket().then(socket => {
       return new Promise(resolve => {
+        console.log('alksdkjalksjdlkjlajsd')
         socket.emit('message', 'hello world')
         socket.on('message', msg => {
+          console.log(msg, '=-=-=-=-->?>>>>>?>?>?>')
           expect(msg).to.equal('hello world')
           resolve()
         })

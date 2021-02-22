@@ -1,6 +1,8 @@
 exports.init = (io, { pid, namespace, preservedNamespace }) => {
+  console.info(`Socket[${pid}] with namespace:${namespace} has loaded!`)
+
   io.on('connection', (socket) => {
-    console.log('client connected ..' + socket.id + '..cluster' + process.pid)
+    console.info(`Client[${pid}] connected .. user ${socket.id} .. namespace ${namespace}`)
 
     socket.on('message', (data) => {
       console.log(`msg: ${data}, pid: ${(data, process.pid)}`)

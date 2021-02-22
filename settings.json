@@ -1,13 +1,8 @@
 {
 	"components": [
 		{
-			"namespace": "/profile",
-			"path": "../tests/components/profile.js",
-			"exc": "init"
-		},
-		{
-			"namespace": "/admin",
-			"path": "../tests/components/admin.js",
+			"namespace": "/test",
+			"path": "./tests/components/test.js",
 			"exc": "init"
 		}
 	]
