@@ -1,18 +1,8 @@
 {
 	"components": [
 		{
-			"namespace": "/ep_profile",
-			"path": "./ep_profile.js",
-			"exc": "init"
-		},
-		{
-			"namespace": "/ep_wrtc",
-			"path": "./ep_wrtc.js",
-			"exc": "init"
-		},
-		{
-			"namespace": "/ep_wrtc2",
-			"path": "./node_modules/ep_wrtc_heading/server/mysocket",
+			"namespace": "/test",
+			"path": "./tests/components/test.js",
 			"exc": "init"
 		}
 	]
