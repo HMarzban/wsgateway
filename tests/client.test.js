@@ -51,7 +51,6 @@ describe('server', function () {
 
   const makeSocket = (id = 0) => {
     return new Promise((resolve) => {
-      console.log(socketUrl)
       const socket = io.connect(socketUrl, {
         reconnectionDelay: 1000,
         autoConnect: true,
@@ -101,7 +100,6 @@ describe('server', function () {
         console.log('alksdkjalksjdlkjlajsd')
         socket.emit('message', 'hello world')
         socket.on('message', msg => {
-          console.log(msg, '=-=-=-=-->?>>>>>?>?>?>')
           expect(msg).to.equal('hello world')
           resolve()
         })
