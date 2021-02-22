@@ -1,4 +1,3 @@
-const fs = require('fs')
 const path = require('path')
 const Ajv = require('ajv').default
 const ajValidator = new Ajv({ allErrors: true, async: true })
@@ -40,9 +39,10 @@ exports.forkComponents = (settings, io) => {
     settings.components.forEach(component => {
       // create io namespace
       const newIo = io.of(component.namespace)
-      const cpdir = path.join(__dirname, component.path)
+      const cpdir = path.join('../', component.path)
+
       // check if the path is exists
-      if (!fs.existsSync(cpdir)) { throw new Error(`Component [${component.namespace}] path does not exist; path: ${component.path} `) }
+      if (!path.resolve(cpdir)) { throw new Error(`Component [${component.namespace}] path does not exist; path: ${component.path} `) }
 
       const reqComponent = require(cpdir)
 
