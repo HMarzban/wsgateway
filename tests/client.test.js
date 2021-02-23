@@ -46,7 +46,7 @@ describe('server', function () {
     sockets = []
   })
   afterEach(() => {
-    // sockets.forEach(e => e.disconnect())
+    sockets.forEach(e => e.disconnect())
   })
 
   const makeSocket = (id = 0) => {
@@ -62,7 +62,7 @@ describe('server', function () {
         resolve(socket)
       })
       socket.on('disconnect', () => {
-        console.log(`[client ${id}] disconnected`)
+        // console.log(`[client ${id}] disconnected`)
       })
       sockets.push(socket)
       // return socket
@@ -97,7 +97,6 @@ describe('server', function () {
   it('should echo a message to a client', () => {
     return makeSocket().then(socket => {
       return new Promise(resolve => {
-        console.log('alksdkjalksjdlkjlajsd')
         socket.emit('message', 'hello world')
         socket.on('message', msg => {
           expect(msg).to.equal('hello world')
@@ -125,88 +124,71 @@ describe('server', function () {
 
   it(`Users join with a delay then wait for 30 sec, then a random client broadcast a message -${USERS}-`, function (done) {
     let count = 0
-    const listenGroup = sockets => {
-      sockets.map((socket, id) => {
-        return new Promise((resolve, reject) => {
-          socket.on('broadCastMessage', (msg) => {
-            count++
-            expect(msg).to.equal('the game will start soon')
-            resolve()
-          })
-        })
+
+    const listenGroup = (sockets) => sockets.forEach((socket, id) => {
+      socket.on('broadCastMessage', (msg) => {
+        count++
+        expect(msg).to.equal('the game will start soon')
+        if (count === +USERS) {
+          expect(count).to.equal(+USERS)
+          done()
+        }
       })
+    })
+
+    const sendACK = (sockets) => {
+      // select random user
+      const user = sockets[randomInteger(0, sockets.length - 1)]
+      // wait for all users event message set
+      setTimeout(_ => user.emit('broadCastMessage', 'First user acknowledge'), 500)
     }
 
     Promise.all(
-      [...Array(+USERS)].map((_, i) => {
-        return new Promise(resolve => {
+      [...Array(+USERS)].map(async (_, i) => {
+        return new Promise((resolve) => {
           setTimeout(async () => {
-            makeSocket(i).then(socket => {
+            makeSocket(i).then((socket) => {
               resolve(socket)
             })
           }, randomInteger(1000, 7000))
         })
       })
-    ).then(async sockets => {
-      await listenGroup(sockets)
-      return sockets
-    }).then(sockets => {
-      return new Promise(resolve => {
-        const user = sockets[randomInteger(0, sockets.length)]
-        // wait for all users event message set
-        setTimeout(() => {
-          user.emit('broadCastMessage', 'First user acknowledge')
-          resolve()
-        }, 500)
-      })
-    }).then(() => {
-      setTimeout(() => {
-        expect(count).to.equal(+USERS)
-        done()
-      }, 2000)
+    ).then((sockets) => {
+      listenGroup(sockets)
+      setTimeout(_ => sendACK(sockets), 500)
     })
-  }).timeout(1000 * 60 * 6) // 6 min
+  }).timeout(1000 * 60 * 9) // 9 min
 
   // 1/ All users connecting to socket
   // 2/ A random user send message to server
   // 3/ The server must send a message to all users connected to the server
-  // it(`A client should broadcast a message to all users -${USERS}-`, async function(done) {
-  //   const sockets = await Promise.all([...Array(+USERS)].map(async (_, i) =>  makeSocket(i)))
-  //   let count = 0
-  //   const sendACK = () => {
-  //     return new Promise(resolve => {
-  //       // select random user
-  //       const user = sockets[randomInteger(0, sockets.length)]
-  //       // wait for all users event message set
-  //       setTimeout(() => {
-  //         user.emit('broadCastMessage', 'First user acknowledge')
-  //         resolve()
-  //       }, 300)
-  //     })
-  //   }
+  it(`A client should broadcast a message to all users -${USERS}-`, function (done) {
+    let count = 0
 
-  //   const listenGroup = sockets.map((socket, id) => {
-  //     return new Promise((resolve, reject) => {
-  //       socket.on('broadCastMessage', (msg) => {
-  //         count++
-  //         expect(msg).to.equal('the game will start soon')
-  //         resolve()
-  //       })
-  //     })
-  //   })
+    const sendACK = (sockets) => {
+      // select random user
+      const user = sockets[randomInteger(0, sockets.length - 1)]
+      // wait for all users event message set
+      setTimeout(_ => user.emit('broadCastMessage', 'First user acknowledge'))
+    }
 
-  //   const totalMessage = () => {
-  //     return new Promise(resolve => {
-  //       expect(count).to.equal(+USERS)
-  //       resolve()
-  //     })
-  //   }
+    const listenGroup = (sockets) => sockets.forEach((socket, id) => {
+      socket.on('broadCastMessage', (msg) => {
+        count++
+        expect(msg).to.equal('the game will start soon')
+        if (count === +USERS) {
+          expect(count).to.equal(+USERS)
+          done()
+        }
+      })
+    })
 
-  //   return Promise.all([
-  //     ...listenGroup,
-  //     sendACK()
-  //   ]).then(()=>{
-  // 		totalMessage()
-  // 	})
-  // }).timeout(1000 * 60 * 3) // 3 min
+    Promise.all([...Array(+USERS)].map(async (_, i) => makeSocket(i)))
+      .then(sockets => {
+        listenGroup(sockets)
+        setTimeout(_ => sendACK(sockets), 500)
+      })
+  }).timeout(1000 * 60 * 3) // 3 min
+
+	// ping pong strategy
 })
