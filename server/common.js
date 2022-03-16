@@ -1,9 +1,14 @@
 const path = require('path')
 const Ajv = require('ajv').default
-const ajValidator = new Ajv({ allErrors: true, async: true })
-const configSchema = require('./settings.schema.json')
 const redis = require('redis')
+const log4js = require('log4js')
+const logger = log4js.getLogger()
+
+const configSchema = require('./settings.schema.json')
+
 const client = redis.createClient()
+const ajValidator = new Ajv({ allErrors: true, async: true })
+logger.level = 'debug'
 
 exports.healthCheckRouter = (req, res) => {
   const url = req.url
@@ -18,7 +23,7 @@ exports.validateSettings = settings => {
   const validate = ajValidator.compile(configSchema)
   const result = validate(settings)
   if (!result) {
-    console.error(validate.errors)
+    logger.error(validate.errors)
     throw new Error('Configuration verification error!')
   }
 }
@@ -54,7 +59,7 @@ exports.forkComponents = (settings, io) => {
       reqComponent[component.exc](newIo, { pid: process.pid, ...component, preservedNamespace })
     })
   } catch (error) {
-    console.error(error)
+    logger.error(error)
   }
 }
 

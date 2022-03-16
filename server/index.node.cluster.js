@@ -4,12 +4,18 @@ require('dotenv-flow').config({
   silent: true,
   path: dotEnvPath
 })
+
 const cluster = require('cluster')
 const http = require('http')
+
 const { Server } = require('socket.io')
 const redisAdapter = require('socket.io-redis')
 const { setupMaster, setupWorker } = require('@socket.io/sticky')
+const log4js = require('log4js')
+const logger = log4js.getLogger()
+
 const Settings = require('../settings.json')
+
 const { validateSettings, healthCheckRouter, forkComponents, redisCheckConnection } = require('./common')
 const {
   PORT,
@@ -20,6 +26,8 @@ const {
   CLUSTER: clustring,
   INSTANCES: numInstances
 } = process.env
+
+logger.level = 'debug'
 
 redisCheckConnection()
 
@@ -35,14 +43,14 @@ const initHttpService = () => {
   return new Promise(resolve => {
     const httpServer = http.createServer()
     httpServer.listen(PORT, () => {
-      console.info(`Websocket gateway running at http://${HOST}:${PORT}`)
+      logger.info(`Websocket gateway running at http://${HOST}:${PORT}`)
       resolve(httpServer)
     })
   })
 }
 
 const runSocketWorker = (httpServer) => {
-  console.info(`Socket ${process.pid} started`)
+  logger.info(`Socket ${process.pid} started`)
   httpServer = httpServer || http.createServer(healthCheckRouter)
   const io = new Server(httpServer)
 
@@ -66,7 +74,7 @@ const runSocketWorker = (httpServer) => {
   }
 
   if (cluster.isMaster) {
-    console.info(`Master ${process.pid} is running`)
+    logger.info(`Master ${process.pid} is running`)
 
     const httpServer = await initHttpService()
 
@@ -79,7 +87,7 @@ const runSocketWorker = (httpServer) => {
     }
 
     cluster.on('exit', (worker) => {
-      console.error(`Worker ${worker.process.pid} died`)
+      logger.error(`Worker ${worker.process.pid} died`)
       cluster.fork()
     })
   } else {

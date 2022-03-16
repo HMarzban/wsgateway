@@ -4,12 +4,17 @@ require('dotenv-flow').config({
   silent: true,
   path: dotEnvPath
 })
+
 const http = require('http')
 const { Server } = require('socket.io')
 const redisAdapter = require('socket.io-redis')
+const log4js = require('log4js')
+const logger = log4js.getLogger()
+
 const Settings = require('../settings.json')
 const { validateSettings, healthCheckRouter, forkComponents, redisCheckConnection } = require('./common')
 const { PORT, HOST, REDIS_URL, REDIS_PORT } = process.env
+logger.level = 'debug'
 
 redisCheckConnection()
 validateSettings(Settings)
@@ -25,5 +30,5 @@ io.adapter(redisAdapter({
 forkComponents(Settings, io)
 
 httpServer.listen(PORT, () => {
-  console.info(`Websocket gateway running at http://${HOST}:${PORT}, pId: ${process.pid}`)
+  logger.info(`Websocket gateway running at http://${HOST}:${PORT}, pId: ${process.pid}`)
 })
