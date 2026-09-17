@@ -1,15 +1,10 @@
 const path = require('path')
 const Ajv = require('ajv').default
-const redis = require('redis')
 const log4js = require('log4js')
 const logger = log4js.getLogger()
 
 const configSchema = require('./settings.schema.json')
 
-const client = redis.createClient({
-  host: process.env.REDIS_URL || '127.0.0.1',
-  port: Number(process.env.REDIS_PORT || 6379)
-})
 const ajValidator = new Ajv({ allErrors: true, async: true })
 logger.level = 'debug'
 
@@ -67,10 +62,4 @@ exports.forkComponents = (settings, io) => {
   } catch (error) {
     logger.error(error)
   }
-}
-
-exports.redisCheckConnection = () => {
-  client.on('error', function (error) {
-    if (error.code === 'ECONNREFUSED') { throw new Error(`Redis connection failed, error: ${error.code}`) }
-  })
 }
