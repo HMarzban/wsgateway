@@ -34,14 +34,14 @@ redisCheckConnection()
 // cluster mode
 const CLUSTER = clustring === 'true'
 let numCPUs = require('os').cpus().length
-const INSTANCES = numInstances.toLocaleLowerCase() === 'max' ? numCPUs : +numInstances
+const INSTANCES = (numInstances || '1').toLowerCase() === 'max' ? numCPUs : +(numInstances || 1)
 if (CLUSTER && INSTANCES) numCPUs = INSTANCES
 
 validateSettings(Settings)
 
 const initHttpService = () => {
   return new Promise(resolve => {
-    const httpServer = http.createServer()
+    const httpServer = http.createServer(CLUSTER ? undefined : healthCheckRouter)
     httpServer.listen(PORT, () => {
       logger.info(`Websocket gateway running at http://${HOST}:${PORT}`)
       resolve(httpServer)

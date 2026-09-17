@@ -6,7 +6,10 @@ const logger = log4js.getLogger()
 
 const configSchema = require('./settings.schema.json')
 
-const client = redis.createClient()
+const client = redis.createClient({
+  host: process.env.REDIS_URL || '127.0.0.1',
+  port: Number(process.env.REDIS_PORT || 6379)
+})
 const ajValidator = new Ajv({ allErrors: true, async: true })
 logger.level = 'debug'
 
@@ -15,6 +18,9 @@ exports.healthCheckRouter = (req, res) => {
   if (url === '/healthcheck') {
     res.setHeader('Content-Type', 'application/json')
     res.write(JSON.stringify({ status: true, pId: process.pid }))
+    res.end()
+  } else {
+    res.writeHead(404)
     res.end()
   }
 }
