@@ -31,7 +31,7 @@ describe('gateway integration', function () {
   beforeEach(() => { sockets = [] })
   afterEach(() => sockets.forEach(socket => socket.disconnect()))
   async function connect () {
-    const socket = io(socketUrl, { autoConnect: false, reconnection: false, transports: ['websocket'] })
+    const socket = io(socketUrl, { forceNew: true, autoConnect: false, reconnection: false, transports: ['websocket'] })
     sockets.push(socket)
     const connected = event(socket, 'connect')
     socket.connect()
@@ -72,7 +72,10 @@ describe('gateway integration', function () {
   })
   it('accepts a client reconnect', async () => {
     const socket = await connect()
+    // Wait for transport cleanup before reusing the Socket.IO 3 manager.
+    const closed = event(socket.io, 'close')
     socket.disconnect()
+    await closed
     const connected = event(socket, 'connect')
     socket.connect()
     await connected
