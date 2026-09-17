@@ -1,8 +1,7 @@
 /* eslint-env mocha */
 const path = require('path')
 require('dotenv-flow').config({ default_node_env: 'test', path: path.resolve(__dirname), silent: true })
-const { expect } = require('chai')
-const axios = require('axios').default
+const assert = require('node:assert/strict')
 const io = require('socket.io-client')
 const serverAddress = `${process.env.SOCKET_URL || 'http://127.0.0.1'}:${process.env.PORT || 3000}`
 const socketUrl = `${serverAddress}/${process.env.NAMESPACE || 'test'}`
@@ -41,19 +40,21 @@ describe('gateway integration', function () {
   async function echo (socket, message) {
     const received = event(socket, 'message')
     socket.emit('message', message)
-    expect(await received).to.equal(message)
+    assert.equal(await received, message)
   }
   async function broadcast (clients) {
     const received = clients.map(socket => event(socket, 'broadCastMessage'))
     clients[0].emit('broadCastMessage', 'start')
     const messages = await Promise.all(received)
-    expect(messages).to.have.length(users)
-    messages.forEach(message => expect(message).to.equal('the game will start soon'))
+    assert.equal(messages.length, users)
+    messages.forEach(message => assert.equal(message, 'the game will start soon'))
   }
   it('reports HTTP health', async () => {
-    const { data } = await axios.get(`${serverAddress}/healthcheck`, { timeout: 5000, proxy: false })
-    expect(data.status).to.equal(true)
-    expect(data.pId).to.be.a('number')
+    const response = await fetch(`${serverAddress}/healthcheck`, { signal: AbortSignal.timeout(5000) })
+    assert.equal(response.status, 200)
+    const data = await response.json()
+    assert.equal(data.status, true)
+    assert.equal(typeof data.pId, 'number')
   })
   it('echoes one client message', async () => echo(await connect(), 'hello world'))
   it('awaits every concurrent client echo', async () => {
@@ -72,7 +73,7 @@ describe('gateway integration', function () {
   })
   it('accepts a client reconnect', async () => {
     const socket = await connect()
-    // Wait for transport cleanup before reusing the Socket.IO 3 manager.
+    // Wait for transport cleanup before reusing the Socket.IO manager.
     const closed = event(socket.io, 'close')
     socket.disconnect()
     await closed

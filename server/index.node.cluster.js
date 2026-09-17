@@ -9,27 +9,23 @@ const cluster = require('cluster')
 const http = require('http')
 
 const { Server } = require('socket.io')
-const redisAdapter = require('socket.io-redis')
+const { connectRedisAdapter } = require('./redis')
 const { setupMaster, setupWorker } = require('@socket.io/sticky')
 const log4js = require('log4js')
 const logger = log4js.getLogger()
 
 const Settings = require('../settings.json')
 
-const { validateSettings, healthCheckRouter, forkComponents, redisCheckConnection } = require('./common')
+const { validateSettings, healthCheckRouter, forkComponents } = require('./common')
 const {
   PORT,
   HOST,
-  REDIS_URL,
-  REDIS_PORT,
   LOADBALANCING_METHOD,
   CLUSTER: clustring,
   INSTANCES: numInstances
 } = process.env
 
 logger.level = 'debug'
-
-redisCheckConnection()
 
 // cluster mode
 const CLUSTER = clustring === 'true'
@@ -39,9 +35,8 @@ if (CLUSTER && INSTANCES) numCPUs = INSTANCES
 
 validateSettings(Settings)
 
-const initHttpService = () => {
+const initHttpService = (httpServer = http.createServer()) => {
   return new Promise(resolve => {
-    const httpServer = http.createServer(CLUSTER ? undefined : healthCheckRouter)
     httpServer.listen(PORT, () => {
       logger.info(`Websocket gateway running at http://${HOST}:${PORT}`)
       resolve(httpServer)
@@ -49,27 +44,26 @@ const initHttpService = () => {
   })
 }
 
-const runSocketWorker = (httpServer) => {
+const runSocketWorker = async (httpServer = http.createServer(healthCheckRouter)) => {
   logger.info(`Socket ${process.pid} started`)
-  httpServer = httpServer || http.createServer(healthCheckRouter)
+  const redis = await connectRedisAdapter()
   const io = new Server(httpServer)
 
-  io.adapter(redisAdapter({
-    host: REDIS_URL,
-    port: REDIS_PORT
-  }))
+  io.adapter(redis.adapter)
+  httpServer.on('close', redis.close)
 
   if (CLUSTER) {
     setupWorker(io)
   }
 
   forkComponents(Settings, io)
+  return httpServer
 }
 
 ;(async () => {
   if (!CLUSTER) {
-    const httpServer = await initHttpService()
-    runSocketWorker(httpServer)
+    const httpServer = await runSocketWorker()
+    await initHttpService(httpServer)
     return
   }
 
@@ -91,6 +85,9 @@ const runSocketWorker = (httpServer) => {
       cluster.fork()
     })
   } else {
-    runSocketWorker()
+    await runSocketWorker()
   }
-})()
+})().catch(error => {
+  logger.error(error)
+  process.exitCode = 1
+})

@@ -5,6 +5,9 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [22, 24]
     services:
       redis:
         image: redis:7-alpine
@@ -19,9 +22,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: ${{ matrix.node }}
           cache: npm
       - run: npm ci --ignore-scripts
+      - run: npm run lint
+      - run: npm audit --audit-level=high
       - name: Start sample gateway and verify behavior
         env:
           PORT: 3000
@@ -31,9 +36,26 @@ jobs:
           USERS: 10
         run: |
           cp settings.json.template settings.json
-          npm start > gateway.log 2>&1 &
+          node server/index.pm2.cluster.js > gateway.log 2>&1 &
           gateway_pid=$!
           trap 'kill "$gateway_pid" || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:3000/healthcheck; then break; fi
+            sleep 1
+          done
+          npm test
+          npm run test:redis
+      - name: Verify PM2 cluster mode
+        env:
+          PM2_HOME: ${{ runner.temp }}/gateway-pm2
+          PORT: 3000
+          SOCKET_URL: http://127.0.0.1
+          REDIS_URL: 127.0.0.1
+          REDIS_PORT: 6379
+          USERS: 10
+        run: |
+          trap 'npx --no-install pm2 kill' EXIT
+          npx --no-install pm2 start scripts/pm2.config.js
           for attempt in $(seq 1 30); do
             if curl --fail --silent http://127.0.0.1:3000/healthcheck; then break; fi
             sleep 1
