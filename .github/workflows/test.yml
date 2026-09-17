@@ -1,0 +1,44 @@
+name: Gateway integration
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Start sample gateway and verify behavior
+        env:
+          PORT: 3000
+          SOCKET_URL: http://127.0.0.1
+          REDIS_URL: 127.0.0.1
+          REDIS_PORT: 6379
+          USERS: 10
+        run: |
+          cp settings.json.template settings.json
+          npm start > gateway.log 2>&1 &
+          gateway_pid=$!
+          trap 'kill "$gateway_pid" || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:3000/healthcheck; then break; fi
+            sleep 1
+          done
+          npm test
+      - name: Failure diagnostics
+        if: failure()
+        run: cat gateway.log

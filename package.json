@@ -1,7 +1,7 @@
 {
   "name": "wsgateway",
   "version": "1.0.2",
-  "description": "",
+  "description": "Historical Socket.IO gateway experiment with Redis fan-out and namespace components",
   "main": "index.js",
   "scripts": {
     "test": "mocha tests/client.test.js",
@@ -34,7 +34,12 @@
   "devDependencies": {
     "axios": "^0.21.1",
     "eslint-plugin-markdown": "^1.0.2",
+    "mocha": "^11.8.0",
+    "pm2": "^6.0.14",
     "snazzy": "^9.0.0",
     "standard": "^16.0.3"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }
